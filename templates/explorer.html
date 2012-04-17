@@ -44,7 +44,8 @@
                 } else if (self.hasClass('file')) {
                     // open editor
                     file_path = self.attr('data-path');
-                    window.open('{% url editor-editor %}?f=' + file_path, '_blank', 'toolbar=yes, location=yes, directories=no, status=no, menubar=yes, scrollbars=yes, resizable=no, copyhistory=yes, width=700, height=700'); 
+                    var x = window.screenX + window.screen.width;
+                    window.open('{% url editor-editor %}?f=' + file_path, '_blank', 'toolbar=yes, location=yes, directories=no, status=no, menubar=yes, scrollbars=yes, resizable=no, copyhistory=yes, width=700, height=700, left=' + x); 
                 } else {
                     alert('Unknown file type');
                 }
