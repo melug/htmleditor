@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Edit:{{ file }}</title>
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.css" rel="stylesheet">
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        </script>
+        <script type="text/javascript">
+            function file_clicked() {
+                var self = $(this);
+                if (self.hasClass('directory')) {
+                    var children = self.parent().children('ul').size();
+                    var icon_holder = self.find('i');
+                    if (children != 0) {
+                        // hide directory
+                        self.parent().children('ul').remove();
+                        icon_holder.removeClass('icon-folder-open');
+                        icon_holder.addClass('icon-folder-close');
+                    } else {
+                        // load data
+                        icon_holder.addClass('icon-folder-open');
+                        icon_holder.removeClass('icon-folder-close');
+                        $.get('{% url editor-explorer-api %}', { f: self.attr('data-path') }, function(data) {
+                            var sublist_container = $('<ul></ul>');
+                            var subfile, subfile_div, subfile_path;
+                            for(index in data) {
+                                subfile = data[index];
+                                subfile_path = self.attr('data-path') + '/' + subfile.file;
+                                subfile_div = $('<div></div>');
+                                subfile_div.text(subfile.file);
+                                subfile_div.addClass(subfile.type);
+                                subfile_div.attr('data-path', subfile_path);
+                                if (subfile.type === 'directory') {
+                                    subfile_div.prepend($('<i class="icon-folder-close"></i>'));
+                                } else {
+                                    subfile_div.prepend($('<i class="icon-pencil"></i>'));
+                                }
+                                subfile_div.click(file_clicked);
+                                sublist_container.append($('<li></li>').append(subfile_div));
+                            }
+                            self.parent().append(sublist_container);
+                        });
+                    }
+                } else if (self.hasClass('file')) {
+                    // open editor
+                    file_path = self.attr('data-path');
+                    window.open('{% url editor-editor %}?f=' + file_path, '_blank', 'toolbar=yes, location=yes, directories=no, status=no, menubar=yes, scrollbars=yes, resizable=no, copyhistory=yes, width=700, height=700'); 
+                } else {
+                    alert('Unknown file type');
+                }
+            }
+            $(function() {
+                $('#explorer div').click(file_clicked);
+                $('#explorer div').click();
+                $('#url').keyup(function(event) {
+                    if(event.keyCode === 13) {
+                        window.reload_eye();
+                    }
+                });
+                $('#explorer h3').click(function() {
+                    $('#explorer > ul').toggle('fast');
+                });
+            });
+            window.reload_eye = function() {
+                $('#eye').attr('src', $('#url').val() || $('#eye').attr('src'));
+            };
+        </script>
+        <style type="text/css">
+            #explorer ul {
+                margin-left: 10px;
+            }
+            #explorer li {
+                list-style-type: none;
+            }
+            #explorer {
+                position: fixed;
+                top: 0;
+                left: 0;
+                border: 1px solid;
+                padding: 10px;
+                background-color: white;
+            }
+            #explorer:hover h3 {
+                text-decoration: underline;
+            }
+            #eye-panel {
+                position: fixed;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+            }
+            div.control-group {
+                margin-left: 260px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="eye-panel">
+            <div class="control-group pull-right">
+                <label class="control-label" for="url">Eye:</label>
+                <div class="controls">
+                    <input type="text" class="input-xlarge" id="url">
+                </div>
+            </div>
+            <iframe id="eye" width="100%" height="100%"></iframe>
+        </div>
+        <div class="span3" id="explorer">
+            <h3>Directory:</h3>
+            <ul><div data-path="." class="directory"></div></ul>
+        </div>
+    </body>
+</html>

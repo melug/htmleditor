@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Edit:{{ file }}</title>
+        <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.css" rel="stylesheet">
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            $.ajaxSetup({ 
+                beforeSend: function(xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                } 
+            });
+            function save() {
+                $.post('{% url editor-update %}', { 'f': '{{ file }}', 'c': editor.getSession().getValue() }, function(data) {
+                    if(data === 'ok') {
+                        window.opener.reload_eye();
+                    } else {
+                        alert('FAILED to save! here is the log: ' + data);
+                    }
+                }).error(function() { alert('Fuck!, something gone wrong.'); });
+            }
+        </script>
+        <style type="text/css">
+            #editor {
+                height: 100%;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="editor">Some text</div>
+        <script src="{{ STATIC_URL }}src/ace.js" type="text/javascript" charset="utf-8"></script>
+        <script>
+            var extension_map = {
+                'py': 'ace/mode/python',
+                'html': 'ace/mode/html'
+            }
+            function make_editor(element_id) {
+                extension_regex = /\.(\w+)$/;
+                file_name = '{{ file|escapejs }}';
+                editor = ace.edit("editor");
+                editor.getSession().setValue('{{ content|escapejs }}');
+                ext = extension_regex.exec(file_name)[1];
+                if(extension_map[ext]) {
+                    editor.getSession().setMode(extension_map[ext]);
+                }
+                editor.commands.addCommand({
+                    name: "save",
+                    bindKey: {
+                        win: "Ctrl-S",
+                        mac: "Command-S",
+                        sender: "editor"
+                    },
+                    exec: function() {
+                        save();
+                    }
+                });
+            };
+            $(function() {
+                make_editor("editor");
+            });
+        </script>
+    </body>
+</html>

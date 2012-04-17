@@ -1,14 +1,17 @@
 # Create your views here.
+import json
+import os.path
+
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.http import HttpResponse
 from django.template import Context, Template
 
-def home(request):
+def editor(request):
     file_name = request.GET['f']
     with open(file_name, 'r') as f:
         content = f.read()
-    return render_to_response('editor_home.html', {
+    return render_to_response('editor.html', {
         'file': file_name,
         'content': content,
     }, context_instance=RequestContext(request))
@@ -22,9 +25,24 @@ def preview(request):
     
 def update(request):
     file_name = request.POST['f']
-    content = request.POST['c']
+    content = request.POST['c'].encode('utf8')
     f = open(file_name, 'w')
     f.write(content)
     f.close()
     return HttpResponse('ok')
+
+def explorer(request):
+    return render_to_response('explorer.html', {
+    }, context_instance=RequestContext(request))
+
+def explorer_api(request):
+    file_name = request.GET.get('f', '.')
+    files = []
+    for f in os.listdir(file_name):
+        if os.path.isdir(os.path.join(file_name, f)):
+            file_type = 'directory'
+        else:
+            file_type = 'file'
+        files.append({ 'type': file_type, 'file': f })
+    return HttpResponse(json.dumps(files), content_type='application/json')
 
