@@ -33,6 +33,7 @@ def update(request):
 
 def explorer(request):
     return render_to_response('explorer.html', {
+        'eye': request.GET.get('eye', ''),
     }, context_instance=RequestContext(request))
 
 def explorer_api(request):
@@ -44,5 +45,6 @@ def explorer_api(request):
         else:
             file_type = 'file'
         files.append({ 'type': file_type, 'file': f })
+    files.sort(key=lambda x:(x['type'], x['file']))
     return HttpResponse(json.dumps(files), content_type='application/json')
 

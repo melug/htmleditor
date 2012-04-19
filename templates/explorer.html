@@ -102,10 +102,10 @@
             <div class="control-group pull-right">
                 <label class="control-label" for="url">Eye:</label>
                 <div class="controls">
-                    <input type="text" class="input-xlarge" id="url">
+                    <input type="text" class="input-xlarge" id="url" value="{% if eye %}{{ eye }}{% endif %}">
                 </div>
             </div>
-            <iframe id="eye" width="100%" height="100%"></iframe>
+            <iframe id="eye" width="100%" height="100%"{% if eye %} src="{{ eye }}"{% endif %}></iframe>
         </div>
         <div class="span3" id="explorer">
             <h3>Directory:</h3>
